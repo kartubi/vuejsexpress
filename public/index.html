@@ -1,0 +1,314 @@
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <title>single page react boilerplate</title>
+    <link href="https://unpkg.com/tailwindcss@^2/dist/tailwind.min.css" rel="stylesheet">
+    <script src="https://unpkg.com/vue@next"></script>
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <!-- Lastly add this package -->
+    <script src="https://cdn.jsdelivr.net/npm/vue-toast-notification@2"></script>
+    <link href="https://cdn.jsdelivr.net/npm/vue-toast-notification@2/dist/theme-sugar.css" rel="stylesheet">
+
+
+</head>
+
+<body>
+<div id="counter" class="bg-gray-100 h-screen">
+    <div class="container mx-auto p-4">
+        <div class="flex">
+            <div class="w-full">
+                <div v-if="mode == 'user'"
+                     class="flex flex-col space-y-2 w-full md:w-2/3 mx-auto bg-white p-4 shadow-sm rounded-md">
+                    <div>
+                        <button @click="mode = 'create' "
+                                class="border hover:bg-indigo-500 hover:text-white rounded-md py-1 px-4 text-sm text-indigo-500">
+                            BACK
+                        </button>
+                    </div>
+
+                    <p class="font-semibold mb-2 text-center">Data Patient</p>
+
+                    <div class="flex justify-center flex-col lg:flex-row space-x-0 lg:space-x-2 space-y-2 lg:space-y-0">
+                        <div class="flex-shrink flex flex-col space-y-2">
+                            <p class="text-sm">Name</p>
+                            <input v-model="patient_name" class="bg-gray-100 py-2 px-4 rounded-md"
+                                   placeholder="Enter Name">
+                        </div>
+                        <div class="flex flex-col space-y-2 w-24">
+                            <p class="text-sm">Age</p>
+                            <input type="number" v-model="patient_age"
+                                   class="bg-gray-100 py-2 px-4 rounded-md appearance-none" min="1">
+                        </div>
+                        <div class="flex items-end">
+                            <button @click="addUser"
+                                    class="w-full bg-indigo-500 hover:bg-indigo-600 rounded-md py-2 px-8 text-white">
+                                ADD
+                            </button>
+                        </div>
+
+                    </div>
+
+                    <div class="flex flex-col space-y-2">
+                        <table>
+                            <thead>
+                            <tr class="border-b">
+                                <th class="py-2">
+                                    Name
+                                </th>
+                                <th>
+                                    Age
+                                </th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            <tr v-for="(item, key) in users" class="text-center border-b">
+                                <td class="py-2">
+                                    {{item.name}}
+                                </td>
+                                <td>
+                                    {{item.age}}
+                                </td>
+                            </tr>
+
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div v-if="mode == 'create' || mode == 'edit'"
+                     class="flex flex-col w-full md:w-1/3 mx-auto bg-white p-4 shadow-sm rounded-md">
+                    <p class="font-semibold mb-2 text-center">{{mode == 'create'? 'Add' : 'Edit'}} Disease Data </p>
+                    <div class="flex flex-col space-y-2">
+                        <p class="text-sm">Name Of Disease</p>
+                        <input v-model="name" class="bg-gray-100 py-2 px-4 rounded-md"
+                               placeholder="Enter Name Of Disease">
+                    </div>
+                    <div class="flex flex-col space-y-2">
+                        <p class="text-sm">Name Of Disease</p>
+                        <div class="flex space-x-2">
+                            <select v-model="user_id"
+                                    class="bg-gray-100 py-2 px-4 rounded-md appearance-none flex-grow">
+                                <option value="">Select User</option>
+                                <option :value="item.id" v-bind:key="key" v-for="(item, key) in users">{{item.name}}
+                                    ({{item.age}})
+                                </option>
+                            </select>
+                            <a @click="mode = 'user'"
+                               class="bg-indigo-500 rounded-md py-2 px-2 text-white hover:bg-indigo-600">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24"
+                                     stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                          d="M5 12h.01M12 12h.01M19 12h.01M6 12a1 1 0 11-2 0 1 1 0 012 0zm7 0a1 1 0 11-2 0 1 1 0 012 0zm7 0a1 1 0 11-2 0 1 1 0 012 0z"/>
+                                </svg>
+                            </a>
+                        </div>
+
+                        <button @click="mode == 'create' ? postData() : updateData()"
+                                class="bg-indigo-500 hover:bg-indigo-600 rounded-md py-2 px-8 text-white">{{mode == 'create'? 'Add' : 'Update'}}
+                        </button>
+                        <button @click="mode = 'index'"
+                                class="border-2 border-indigo-500 hover:text-indigo-600 rounded-md py-2 px-8 text-indigo-500">
+                            BACK TO LIST
+                        </button>
+                    </div>
+                </div>
+
+                <div v-if="mode == 'index'" class="flex flex-col space-y-4 bg-white p-4 shadow-sm rounded-md">
+                    <div class="flex justify-between">
+                        <p class="font-semibold text-center">Diseases Data </p>
+                        <button @click="mode = 'create'" class="bg-indigo-500 rounded-md py-2 px-8 text-white">ADD
+                        </button>
+                    </div>
+                    <div class="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-4">
+                        <div class="hover:bg-indigo-100 rounded-md p-4" v-for="(item, key) in data">
+                            <div class="flex justify-end">
+                                <div class="flex flex-row space-x-4">
+                                    <a @click="setEdit(item)" class="hover:text-indigo-500">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none"
+                                             viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                  d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/>
+                                        </svg>
+                                    </a>
+                                    <a @click="deleteData(item.id)" class="hover:text-red-500">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none"
+                                             viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                  d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                                        </svg>
+                                    </a>
+                                </div>
+                            </div>
+
+                            <p class="text-base">{{item.diseases_name}}</p>
+                            <p class="text-base font-semibold">{{item.user_name}} ({{item.user_age}})</p>
+                        </div>
+                    </div>
+
+                </div>
+
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<script type="text/javascript">
+    const Counter = {
+        data() {
+            return {
+                counter: 3,
+                mode: 'index',
+                data: [],
+                users: [],
+                name: '',
+                user_id: '',
+                disease_id: '',
+                patient_age: '',
+                patient_name: '',
+                patient_id: '',
+            }
+        },
+        mounted() {
+            console.log('mounted !')
+            this.checkData();
+            this.getData();
+            this.getAllUser();
+        },
+        methods: {
+            checkData() {
+                let self = this
+                console.log('called')
+                axios.get('http://localhost:8000/check')
+                    .then((response) => {
+                        let count = response.data.data;
+                        if (count === 0) {
+                            self.initData();
+                        }
+                    }).catch((error) => {
+
+                })
+            },
+            initData() {
+                let self = this
+                console.log('called')
+                axios.get('http://localhost:8000/init')
+                    .then((response) => {
+                        location.reload();
+                    }).catch((error) => {
+
+                })
+            },
+            getData() {
+                let self = this
+                console.log('called')
+                axios.get('http://localhost:8000/diseases')
+                    .then((response) => {
+                        self.data = response.data
+                        console.log(JSON.stringify(self.data))
+                    }).catch((error) => {
+
+                })
+            },
+            postData() {
+                let self = this
+                console.log('called')
+                if (self.user_id == '' || self.name == '') {
+                    this.$toast.error('Please Fill All Form !');
+                    return true;
+                }
+
+                axios.post('http://localhost:8000/diseases/store', {
+                    'name': self.name,
+                    'user_id': self.user_id
+                }).then((response) => {
+                    self.getData();
+                    self.mode = 'index'
+                }).catch((error) => {
+
+                })
+            },
+            updateData() {
+                let self = this
+                console.log('called')
+                if (self.user_id == '' || self.name == '') {
+                    this.$toast.error('Please Fill All Form !');
+                    return true;
+                }
+
+                axios.post('http://localhost:8000/diseases/update', {
+                    'name': self.name,
+                    'user_id': self.user_id,
+                    'id': self.disease_id
+                }).then((response) => {
+                    self.getData();
+                    self.mode = 'index'
+                }).catch((error) => {
+
+                })
+            },
+            deleteData(id) {
+                let self = this
+                console.log('called')
+                if (confirm("Are you sure want to delete ?")) {
+                    axios.post('http://localhost:8000/diseases/delete', {
+                        'id': id
+                    }).then((response) => {
+                        self.getData();
+                        self.mode = 'index'
+                    }).catch((error) => {
+
+                    })
+                }
+
+            },
+            getAllUser() {
+                let self = this
+                console.log('called')
+                axios.get('http://localhost:8000/users')
+                    .then((response) => {
+                        self.users = response.data
+                        console.log(JSON.stringify(self.data))
+                    }).catch((error) => {
+
+                })
+            },
+            setEdit(data) {
+                let self = this
+                console.log('called')
+                self.mode = 'edit';
+                self.name = data.diseases_name;
+                self.user_id = data.user_id;
+                self.disease_id = data.id;
+            },
+            addUser() {
+                let self = this
+                console.log('called')
+                if (self.patient_name == '' || self.patient_age == '') {
+                    this.$toast.error('Please Fill All Form !');
+                    return true;
+                }
+                axios.post('http://localhost:8000/users/store', {
+                    'name': self.patient_name,
+                    'age': self.patient_age
+                }).then((response) => {
+                    self.patient_name = '';
+                    self.patient_age = '';
+                    self.getAllUser();
+                }).catch((error) => {
+
+                })
+            },
+        }
+    }
+
+    const app = Vue.createApp(Counter);
+    app.use(VueToast);
+    app.mount('#counter')
+
+</script>
+
+</body>
+
+</html>
